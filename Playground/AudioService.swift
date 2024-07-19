@@ -9,6 +9,8 @@ class AudioService: NSObject, AVAudioPlayerDelegate {
     
     override init() {
         super.init()
+        // Observe audio session interruptions
+        NotificationCenter.default.addObserver(self, selector: #selector(handleInterruption), name: AVAudioSession.interruptionNotification, object: nil)
     }
     
     func downloadAndPlay(runId: String, filename: String, completion: @escaping () -> Void) {
@@ -58,6 +60,27 @@ class AudioService: NSObject, AVAudioPlayerDelegate {
             print("Audio playback failed: \(error)")
             playbackCompletion?()
             playbackCompletion = nil
+        }
+    }
+    
+    // Handle audio interruptions
+    @objc private func handleInterruption(notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+              let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
+            return
+        }
+        
+        if type == .began {
+            // Interruption began, pause the audio
+            audioPlayer?.pause()
+        } else if type == .ended {
+            // Interruption ended, resume the audio
+            guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
+            let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+            if options.contains(.shouldResume) {
+                audioPlayer?.play()
+            }
         }
     }
     
