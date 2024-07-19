@@ -38,7 +38,7 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
     func startMonitoringCheckpoints(_ checkpoints: [Checkpoint], forRunID runID: String) {
         self.currentRunID = runID
         self.checkpoints = checkpoints.sorted { $0.order < $1.order }
-        lastCheckpointIndex = 0 // Reset the index if starting monitoring anew
+        lastCheckpointIndex = 0 // Reset the index if starting monitoring anew xxxxxxx
         updateGeofences()
     }
     

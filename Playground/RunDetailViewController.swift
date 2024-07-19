@@ -11,7 +11,7 @@ class RunDetailViewController: UIViewController, MKMapViewDelegate {
     @IBOutlet var elevationLabel: UILabel!     // New Outlet for elevation
     @IBOutlet var categoryLabel: UILabel!      // New Outlet for category
     @IBOutlet var startRunButton: UIButton! // Make sure you have this button in your storyboard
-    @IBOutlet var infoBoxView: UIView! // Assuming this is the floating box view you have in your storyboard
+    @IBOutlet var infoBoxView: UIView! // Assuming this is the xxxxx floating box view you have in your storyboard
     
     var run: Run?
     var checkpoints: [Checkpoint] = []
