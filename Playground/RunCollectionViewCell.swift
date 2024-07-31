@@ -7,9 +7,12 @@ class RunCell: UICollectionViewCell {
     @IBOutlet weak var elevationLabel: UILabel!
     @IBOutlet weak var categoryLabel: UILabel!
 
+    // Create a cache to store images
+    static var imageCache = NSCache<NSString, UIImage>()
+
     override func awakeFromNib() {
         super.awakeFromNib()
-        // Initialization code xxx
+        // Initialization code
         coverImageView.contentMode = .scaleAspectFill
         coverImageView.clipsToBounds = true
 
@@ -79,7 +82,13 @@ class RunCell: UICollectionViewCell {
         distanceLabel.text = run.distance
         elevationLabel.text = run.elevation
         categoryLabel.text = run.category
-        coverImageView.image = image
+
+        // Use cached image if available
+        if let cachedImage = RunCell.imageCache.object(forKey: run.id! as NSString) {
+            coverImageView.image = cachedImage
+        } else {
+            coverImageView.image = image
+        }
     }
 
     private func addGradientOverlay() {

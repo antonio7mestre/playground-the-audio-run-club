@@ -9,6 +9,7 @@ class RunListViewController: UIViewController, UICollectionViewDelegate, UIColle
     
     var runs: [Run] = []
     var distances: [Run: CLLocationDistance] = [:]
+    var imageCache: [String: UIImage] = [:] // Image cache
     let locationManager = CLLocationManager()
     var userLocation: CLLocation?
     
@@ -140,18 +141,23 @@ class RunListViewController: UIViewController, UICollectionViewDelegate, UIColle
         cell.elevationLabel.text = run.elevation
         cell.categoryLabel.text = run.category
         
-        // Fetch image from Firebase Storage
-        let storageRef = Storage.storage().reference(withPath: "runs/\(run.id!)/images/cover.jpeg")
-        storageRef.getData(maxSize: 10 * 1024 * 1024) { data, error in
-            if let error = error {
-                print("Error fetching image: \(error)")
-                return
-            }
-            
-            if let data = data {
-                cell.coverImageView.image = UIImage(data: data)
-                cell.coverImageView.contentMode = .scaleAspectFill // Set the content mode programmatically
-                cell.coverImageView.clipsToBounds = true
+        // Fetch image from Firebase Storage with caching
+        if let cachedImage = imageCache[run.id!] {
+            cell.coverImageView.image = cachedImage
+        } else {
+            let storageRef = Storage.storage().reference(withPath: "runs/\(run.id!)/images/cover.jpeg")
+            storageRef.getData(maxSize: 10 * 1024 * 1024) { data, error in
+                if let error = error {
+                    print("Error fetching image: \(error)")
+                    return
+                }
+                
+                if let data = data, let image = UIImage(data: data) {
+                    self.imageCache[run.id!] = image
+                    cell.coverImageView.image = image
+                    cell.coverImageView.contentMode = .scaleAspectFill // Set the content mode programmatically
+                    cell.coverImageView.clipsToBounds = true
+                }
             }
         }
         
