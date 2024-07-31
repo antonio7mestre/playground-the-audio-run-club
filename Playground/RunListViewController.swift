@@ -1,26 +1,49 @@
 import UIKit
 import FirebaseFirestore
+import FirebaseStorage
 import CoreLocation
 
-class RunListViewController: UITableViewController, CLLocationManagerDelegate {
+class RunListViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, CLLocationManagerDelegate {
+
+    @IBOutlet weak var collectionView: UICollectionView!
     
-    // Property to store the list of runs fetched from Firestore
     var runs: [Run] = []
     var distances: [Run: CLLocationDistance] = [:]
     let locationManager = CLLocationManager()
     var userLocation: CLLocation?
     
-    @IBOutlet var runsTableView: UITableView!
-    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        setupNavigationBarTitle()
+        
         locationManager.delegate = self
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
         fetchRuns()
+        
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        
+        // Set up the collection view layout xxxx
+        let layout = UICollectionViewFlowLayout()
+        layout.itemSize = CGSize(width: view.frame.width - 30, height: (view.frame.width - 30) * 0.6) // Adjust size as needed, with some padding
+        layout.minimumInteritemSpacing = 0
+        layout.minimumLineSpacing = 20 // Add spacing between rows
+        layout.sectionInset = UIEdgeInsets(top: 20, left: 15, bottom: 20, right: 15) // Add padding to the section
+        collectionView.collectionViewLayout = layout
     }
     
-    // Fetch runs from Firestore and reload the table view
+    func setupNavigationBarTitle() {
+        let titleLabel = UILabel()
+        titleLabel.text = "Playground"
+        titleLabel.font = UIFont.systemFont(ofSize: 24, weight: .bold)
+        titleLabel.sizeToFit()
+        
+        let leftItem = UIBarButtonItem(customView: titleLabel)
+        navigationItem.leftBarButtonItem = leftItem
+    }
+    
     func fetchRuns() {
         let db = Firestore.firestore()
         db.collection("runs").getDocuments { [weak self] (querySnapshot, error) in
@@ -63,7 +86,7 @@ class RunListViewController: UITableViewController, CLLocationManagerDelegate {
                 }
                 return distance1 < distance2
             }
-            self.runsTableView.reloadData()
+            self.collectionView.reloadData()
         }
     }
     
@@ -97,21 +120,60 @@ class RunListViewController: UITableViewController, CLLocationManagerDelegate {
         print("Location Manager failed with error: \(error.localizedDescription)")
     }
     
-    // MARK: - Table view data source
+    // MARK: - Collection view data source
 
-    override func numberOfSections(in tableView: UITableView) -> Int {
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
         return 1
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return runs.count
     }
 
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "RunCell", for: indexPath)
-        let run = runs[indexPath.row]
-        cell.textLabel?.text = run.name
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "RunCell", for: indexPath) as! RunCell
+        let run = runs[indexPath.item]
+        
+        // Configure the cell
+        cell.titleLabel.text = run.name
+        cell.distanceLabel.text = run.distance
+        cell.elevationLabel.text = run.elevation
+        cell.categoryLabel.text = run.category
+        
+        // Fetch image from Firebase Storage
+        let storageRef = Storage.storage().reference(withPath: "runs/\(run.id!)/images/cover.jpeg")
+        storageRef.getData(maxSize: 10 * 1024 * 1024) { data, error in
+            if let error = error {
+                print("Error fetching image: \(error)")
+                return
+            }
+            
+            if let data = data {
+                cell.coverImageView.image = UIImage(data: data)
+                cell.coverImageView.contentMode = .scaleAspectFill // Set the content mode programmatically
+                cell.coverImageView.clipsToBounds = true
+            }
+        }
+        
         return cell
+    }
+    
+    // MARK: - Collection view delegate flow layout
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize(width: view.frame.width - 30, height: (view.frame.width - 30) * 0.6) // Adjust size as needed, with some padding
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets(top: 20, left: 15, bottom: 20, right: 15) // Add padding to the section
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return 20 // Add spacing between rows
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return 0
     }
     
     // MARK: - Navigation
@@ -119,8 +181,8 @@ class RunListViewController: UITableViewController, CLLocationManagerDelegate {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "showRunDetails",
            let detailVC = segue.destination as? RunDetailViewController,
-           let indexPath = tableView.indexPathForSelectedRow {
-            detailVC.run = runs[indexPath.row]
+           let indexPath = collectionView.indexPathsForSelectedItems?.first {
+            detailVC.run = runs[indexPath.item]
         }
     }
 }

@@ -7,12 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0B5BA1862C40EF520008A11E /* RunListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B5BA1852C40EF520008A11E /* RunListViewController.swift */; };
 		0B5BA1882C40EF5B0008A11E /* RunDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B5BA1872C40EF5B0008A11E /* RunDetailViewController.swift */; };
 		0B5BA18A2C40EF750008A11E /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B5BA1892C40EF750008A11E /* LocationManager.swift */; };
 		0B5BA18C2C40EF810008A11E /* Checkpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B5BA18B2C40EF810008A11E /* Checkpoint.swift */; };
 		0B5BA18E2C40EF870008A11E /* AudioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B5BA18D2C40EF870008A11E /* AudioService.swift */; };
 		0B5BA1942C41E9400008A11E /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0B5BA1932C41E93F0008A11E /* GoogleService-Info.plist */; };
+		0B5BA1962C585AC80008A11E /* RunCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B5BA1952C585AC80008A11E /* RunCollectionViewCell.swift */; };
+		0BA7299F2C5860FC003FCE07 /* RunListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BA7299E2C5860FC003FCE07 /* RunListViewController.swift */; };
 		0BFB2B682C2A5B9700B22505 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BFB2B672C2A5B9700B22505 /* AppDelegate.swift */; };
 		0BFB2B6A2C2A5B9700B22505 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BFB2B692C2A5B9700B22505 /* SceneDelegate.swift */; };
 		0BFB2B6F2C2A5B9800B22505 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 0BFB2B6E2C2A5B9800B22505 /* Base */; };
@@ -28,12 +29,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0B5BA1852C40EF520008A11E /* RunListViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RunListViewController.swift; sourceTree = "<group>"; };
 		0B5BA1872C40EF5B0008A11E /* RunDetailViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RunDetailViewController.swift; sourceTree = "<group>"; };
 		0B5BA1892C40EF750008A11E /* LocationManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		0B5BA18B2C40EF810008A11E /* Checkpoint.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Checkpoint.swift; sourceTree = "<group>"; };
 		0B5BA18D2C40EF870008A11E /* AudioService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioService.swift; sourceTree = "<group>"; };
 		0B5BA1932C41E93F0008A11E /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		0B5BA1952C585AC80008A11E /* RunCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunCollectionViewCell.swift; sourceTree = "<group>"; };
+		0BA7299E2C5860FC003FCE07 /* RunListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunListViewController.swift; sourceTree = "<group>"; };
 		0BFB2B642C2A5B9700B22505 /* Playground.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Playground.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0BFB2B672C2A5B9700B22505 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0BFB2B692C2A5B9700B22505 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -83,7 +85,6 @@
 				0B5BA1892C40EF750008A11E /* LocationManager.swift */,
 				0BFB2B672C2A5B9700B22505 /* AppDelegate.swift */,
 				0BFB2B692C2A5B9700B22505 /* SceneDelegate.swift */,
-				0B5BA1852C40EF520008A11E /* RunListViewController.swift */,
 				0B5BA1872C40EF5B0008A11E /* RunDetailViewController.swift */,
 				0B5BA18B2C40EF810008A11E /* Checkpoint.swift */,
 				0BFB2B8C2C3F36C200B22505 /* run.swift */,
@@ -93,6 +94,8 @@
 				0BFB2B722C2A5B9900B22505 /* LaunchScreen.storyboard */,
 				0BFB2B752C2A5B9900B22505 /* Info.plist */,
 				0B5BA1932C41E93F0008A11E /* GoogleService-Info.plist */,
+				0B5BA1952C585AC80008A11E /* RunCollectionViewCell.swift */,
+				0BA7299E2C5860FC003FCE07 /* RunListViewController.swift */,
 			);
 			path = Playground;
 			sourceTree = "<group>";
@@ -185,7 +188,8 @@
 				0B5BA1882C40EF5B0008A11E /* RunDetailViewController.swift in Sources */,
 				0BFB2B682C2A5B9700B22505 /* AppDelegate.swift in Sources */,
 				0B5BA18E2C40EF870008A11E /* AudioService.swift in Sources */,
-				0B5BA1862C40EF520008A11E /* RunListViewController.swift in Sources */,
+				0B5BA1962C585AC80008A11E /* RunCollectionViewCell.swift in Sources */,
+				0BA7299F2C5860FC003FCE07 /* RunListViewController.swift in Sources */,
 				0BFB2B6A2C2A5B9700B22505 /* SceneDelegate.swift in Sources */,
 				0B5BA18C2C40EF810008A11E /* Checkpoint.swift in Sources */,
 			);
@@ -342,13 +346,13 @@
 				DEVELOPMENT_TEAM = SL3P34N8QF;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Playground/Info.plist;
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This app requires access to your location to provide continuous tracking of your runs.";
-				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "This app requires access to your location to provide continuous tracking of your runs.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app requires access to your location to provide continuous tracking of your runs.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "We use your location to track your run progress even when the app is in the background.";
+				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "We use your location to track your run progress even when the app is in the background.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use your location to track your run progress even when the app is in the background.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -372,13 +376,13 @@
 				DEVELOPMENT_TEAM = SL3P34N8QF;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Playground/Info.plist;
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "This app requires access to your location to provide continuous tracking of your runs.";
-				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "This app requires access to your location to provide continuous tracking of your runs.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app requires access to your location to provide continuous tracking of your runs.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "We use your location to track your run progress even when the app is in the background.";
+				INFOPLIST_KEY_NSLocationAlwaysUsageDescription = "We use your location to track your run progress even when the app is in the background.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use your location to track your run progress even when the app is in the background.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
