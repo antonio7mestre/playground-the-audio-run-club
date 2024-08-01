@@ -3,24 +3,25 @@ import FirebaseFirestore
 import MapKit
 
 class RunDetailViewController: UIViewController, MKMapViewDelegate {
-    // Assuming you have outlets for your UI elements like labels and map view
-    @IBOutlet var mapView: MKMapView!
-    @IBOutlet var nameLabel: UILabel!
-    @IBOutlet var descriptionLabel: UILabel!
-    @IBOutlet var distanceLabel: UILabel!      // New Outlet for distance
-    @IBOutlet var elevationLabel: UILabel!     // New Outlet for elevation
-    @IBOutlet var categoryLabel: UILabel!      // New Outlet for category
-    @IBOutlet var startRunButton: UIButton! // Make sure you have this button in your storyboard
-    @IBOutlet var infoBoxView: UIView! // Assuming this is the xxxxx floating box view you have in your storyboard
+    var mapView: MKMapView!
+    var infoBoxView: UIView!
+    var infoContainerView: UIView!
+    var startButton: UIButton!
+    var titleLabel: UILabel!
+    var descriptionLabel: UILabel!
+    var statsStackView: UIStackView!
+    var distanceLabel: UILabel!
+    var elevationLabel: UILabel!
+    var categoryLabel: UILabel!
     
     var run: Run?
     var checkpoints: [Checkpoint] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupUI()
         configureView()
-        configureInfoBoxView()
-        LocationManager.shared.delegate = self  // Set as delegate
+        LocationManager.shared.delegate = self
         if let runID = run?.id {
             fetchCheckpoints(forRunID: runID) {
                 self.updateMapViewWithCheckpoints()
@@ -29,27 +30,107 @@ class RunDetailViewController: UIViewController, MKMapViewDelegate {
         }
     }
 
-    func configureView() {
-        nameLabel.text = run?.name
-        descriptionLabel.text = run?.description
-        distanceLabel.text = run?.distance       // Assign distance
-        elevationLabel.text = run?.elevation     // Assign elevation
-        categoryLabel.text = run?.category       // Assign category
-        mapView.delegate = self
-        checkLocationAuthorizationStatus()
+    func setupUI() {
+        // Setup MapView
+        mapView = MKMapView(frame: view.bounds)
+        mapView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(mapView)
+
+        // Setup InfoBoxView
+        infoBoxView = UIView()
+        infoBoxView.backgroundColor = .white
+        infoBoxView.layer.cornerRadius = 10
+        infoBoxView.layer.shadowColor = UIColor.black.cgColor
+        infoBoxView.layer.shadowOpacity = 0.2
+        infoBoxView.layer.shadowOffset = CGSize(width: 0, height: 2)
+        infoBoxView.layer.shadowRadius = 4
+        infoBoxView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(infoBoxView)
+
+        // Setup InfoContainerView
+        infoContainerView = UIView()
+        infoContainerView.translatesAutoresizingMaskIntoConstraints = false
+        infoBoxView.addSubview(infoContainerView)
+
+        // Setup Labels
+        titleLabel = UILabel()
+        titleLabel.font = UIFont.boldSystemFont(ofSize: 20)
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        infoContainerView.addSubview(titleLabel)
+
+        descriptionLabel = UILabel()
+        descriptionLabel.font = UIFont.systemFont(ofSize: 14)
+        descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
+        infoContainerView.addSubview(descriptionLabel)
+
+        // Setup Stats Stack View
+        statsStackView = UIStackView()
+        statsStackView.axis = .horizontal
+        statsStackView.distribution = .equalSpacing
+        statsStackView.spacing = 10
+        statsStackView.translatesAutoresizingMaskIntoConstraints = false
+        infoContainerView.addSubview(statsStackView)
+
+        distanceLabel = UILabel()
+        elevationLabel = UILabel()
+        categoryLabel = UILabel()
+        [distanceLabel, elevationLabel, categoryLabel].forEach {
+            $0.font = UIFont.systemFont(ofSize: 14)
+            statsStackView.addArrangedSubview($0)
+        }
+
+        // Setup Start Button
+        startButton = UIButton(type: .system)
+        startButton.setTitle("Start", for: .normal)
+        startButton.setTitleColor(.white, for: .normal)
+        startButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18) // Bold text
+        startButton.backgroundColor = .systemBlue
+        startButton.layer.cornerRadius = 5
+        startButton.translatesAutoresizingMaskIntoConstraints = false
+        startButton.addTarget(self, action: #selector(startRunButtonTapped), for: .touchUpInside)
+        infoBoxView.addSubview(startButton)
+
+        setupConstraints()
     }
 
-    func configureInfoBoxView() {
-        // Set rounded corners
-        infoBoxView.layer.cornerRadius = 10  // Adjust the value as needed
-        infoBoxView.layer.masksToBounds = true
-        
-        // Set shadow
-        infoBoxView.layer.shadowColor = UIColor.black.cgColor
-        infoBoxView.layer.shadowOpacity = 0.2  // Adjust the opacity as needed
-        infoBoxView.layer.shadowOffset = CGSize(width: 0, height: 2)  // Adjust the offset as needed
-        infoBoxView.layer.shadowRadius = 4  // Adjust the radius as needed
-        infoBoxView.layer.masksToBounds = false
+    func setupConstraints() {
+        NSLayoutConstraint.activate([
+            infoBoxView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            infoBoxView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            infoBoxView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.85), // Decreased width
+            infoBoxView.heightAnchor.constraint(equalToConstant: 100), // Increased height
+
+            infoContainerView.leadingAnchor.constraint(equalTo: infoBoxView.leadingAnchor, constant: 15),
+            infoContainerView.centerYAnchor.constraint(equalTo: infoBoxView.centerYAnchor),
+
+            titleLabel.topAnchor.constraint(equalTo: infoContainerView.topAnchor),
+            titleLabel.leadingAnchor.constraint(equalTo: infoContainerView.leadingAnchor),
+            titleLabel.trailingAnchor.constraint(equalTo: infoContainerView.trailingAnchor),
+
+            descriptionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 5),
+            descriptionLabel.leadingAnchor.constraint(equalTo: infoContainerView.leadingAnchor),
+            descriptionLabel.trailingAnchor.constraint(equalTo: infoContainerView.trailingAnchor),
+
+            statsStackView.topAnchor.constraint(equalTo: descriptionLabel.bottomAnchor, constant: 5),
+            statsStackView.leadingAnchor.constraint(equalTo: infoContainerView.leadingAnchor),
+            statsStackView.bottomAnchor.constraint(equalTo: infoContainerView.bottomAnchor),
+
+            startButton.leadingAnchor.constraint(equalTo: infoContainerView.trailingAnchor, constant: 15),
+            startButton.centerYAnchor.constraint(equalTo: infoBoxView.centerYAnchor),
+            startButton.trailingAnchor.constraint(equalTo: infoBoxView.trailingAnchor, constant: -15),
+            startButton.heightAnchor.constraint(equalTo: infoContainerView.heightAnchor),
+            startButton.widthAnchor.constraint(equalToConstant: 80) // Increased width
+        ])
+    }
+
+    func configureView() {
+        titleLabel.text = run?.name
+        descriptionLabel.text = run?.description
+        distanceLabel.text = run?.distance
+        elevationLabel.text = run?.elevation
+        categoryLabel.text = run?.category
+        mapView.delegate = self
+        checkLocationAuthorizationStatus()
     }
 
     private func checkLocationAuthorizationStatus() {
@@ -68,7 +149,7 @@ class RunDetailViewController: UIViewController, MKMapViewDelegate {
         }
     }
             
-    @IBAction func startRunButtonTapped(_ sender: UIButton) {
+    @objc func startRunButtonTapped() {
         guard let runID = run?.id else { return }
 
         if LocationManager.shared.isUserInFirstCheckpoint() {
@@ -107,7 +188,6 @@ class RunDetailViewController: UIViewController, MKMapViewDelegate {
     }
 
     func updateMapViewWithCheckpoints() {
-        // Only remove the circle overlays, keep the polyline
         let circleOverlays = mapView.overlays.filter { $0 is MKCircle }
         mapView.removeOverlays(circleOverlays)
         
@@ -135,7 +215,6 @@ class RunDetailViewController: UIViewController, MKMapViewDelegate {
             zoomRect = zoomRect.union(pointRect)
         }
 
-        // Add padding to the zoomRect
         let edgePadding = UIEdgeInsets(top: 40, left: 40, bottom: 200, right: 40)
         mapView.setVisibleMapRect(zoomRect, edgePadding: edgePadding, animated: true)
     }

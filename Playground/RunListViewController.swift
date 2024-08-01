@@ -9,7 +9,6 @@ class RunListViewController: UIViewController, UICollectionViewDelegate, UIColle
     
     var runs: [Run] = []
     var distances: [Run: CLLocationDistance] = [:]
-    var imageCache: [String: UIImage] = [:] // Image cache
     let locationManager = CLLocationManager()
     var userLocation: CLLocation?
     
@@ -26,13 +25,16 @@ class RunListViewController: UIViewController, UICollectionViewDelegate, UIColle
         collectionView.delegate = self
         collectionView.dataSource = self
         
-        // Set up the collection view layout xxxx
+        // Set up the collection view layout
         let layout = UICollectionViewFlowLayout()
-        layout.itemSize = CGSize(width: view.frame.width - 30, height: (view.frame.width - 30) * 0.6) // Adjust size as needed, with some padding
-        layout.minimumInteritemSpacing = 0
-        layout.minimumLineSpacing = 20 // Add spacing between rows
-        layout.sectionInset = UIEdgeInsets(top: 20, left: 15, bottom: 20, right: 15) // Add padding to the section
+        layout.minimumInteritemSpacing = 10
+        layout.minimumLineSpacing = 20
         collectionView.collectionViewLayout = layout
+    }
+    
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        collectionView.collectionViewLayout.invalidateLayout()
     }
     
     func setupNavigationBarTitle() {
@@ -141,23 +143,18 @@ class RunListViewController: UIViewController, UICollectionViewDelegate, UIColle
         cell.elevationLabel.text = run.elevation
         cell.categoryLabel.text = run.category
         
-        // Fetch image from Firebase Storage with caching
-        if let cachedImage = imageCache[run.id!] {
-            cell.coverImageView.image = cachedImage
-        } else {
-            let storageRef = Storage.storage().reference(withPath: "runs/\(run.id!)/images/cover.jpeg")
-            storageRef.getData(maxSize: 10 * 1024 * 1024) { data, error in
-                if let error = error {
-                    print("Error fetching image: \(error)")
-                    return
-                }
-                
-                if let data = data, let image = UIImage(data: data) {
-                    self.imageCache[run.id!] = image
-                    cell.coverImageView.image = image
-                    cell.coverImageView.contentMode = .scaleAspectFill // Set the content mode programmatically
-                    cell.coverImageView.clipsToBounds = true
-                }
+        // Fetch image from Firebase Storage
+        let storageRef = Storage.storage().reference(withPath: "runs/\(run.id!)/images/cover.jpeg")
+        storageRef.getData(maxSize: 10 * 1024 * 1024) { data, error in
+            if let error = error {
+                print("Error fetching image: \(error)")
+                return
+            }
+            
+            if let data = data {
+                cell.coverImageView.image = UIImage(data: data)
+                cell.coverImageView.contentMode = .scaleAspectFill
+                cell.coverImageView.clipsToBounds = true
             }
         }
         
@@ -167,11 +164,30 @@ class RunListViewController: UIViewController, UICollectionViewDelegate, UIColle
     // MARK: - Collection view delegate flow layout
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: view.frame.width - 30, height: (view.frame.width - 30) * 0.6) // Adjust size as needed, with some padding
+        let horizontalPadding: CGFloat = 30
+        let minimumSpacing: CGFloat = 10
+        let availableWidth = collectionView.bounds.width - horizontalPadding
+        
+        // Calculate the width based on the device size
+        let cellWidth: CGFloat
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            // For iPad, show two items per row
+            cellWidth = (availableWidth - minimumSpacing) / 2
+        } else {
+            // For iPhone, show one item per row
+            cellWidth = availableWidth
+        }
+        
+        // Set a fixed aspect ratio for the cell
+        let cellHeight = cellWidth * 0.6
+        
+        return CGSize(width: cellWidth, height: cellHeight)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        return UIEdgeInsets(top: 20, left: 15, bottom: 20, right: 15) // Add padding to the section
+        let horizontalInset: CGFloat = 15
+        let verticalInset: CGFloat = 20
+        return UIEdgeInsets(top: verticalInset, left: horizontalInset, bottom: verticalInset, right: horizontalInset)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
@@ -179,7 +195,7 @@ class RunListViewController: UIViewController, UICollectionViewDelegate, UIColle
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        return 0
+        return 10
     }
     
     // MARK: - Navigation
