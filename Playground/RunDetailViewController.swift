@@ -16,6 +16,7 @@ class RunDetailViewController: UIViewController, MKMapViewDelegate {
     
     var run: Run?
     var checkpoints: [Checkpoint] = []
+    var isRunning: Bool = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -83,7 +84,7 @@ class RunDetailViewController: UIViewController, MKMapViewDelegate {
         startButton = UIButton(type: .system)
         startButton.setTitle("Start", for: .normal)
         startButton.setTitleColor(.white, for: .normal)
-        startButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18) // Bold text
+        startButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
         startButton.backgroundColor = .systemBlue
         startButton.layer.cornerRadius = 5
         startButton.translatesAutoresizingMaskIntoConstraints = false
@@ -97,8 +98,8 @@ class RunDetailViewController: UIViewController, MKMapViewDelegate {
         NSLayoutConstraint.activate([
             infoBoxView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             infoBoxView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
-            infoBoxView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.85), // Decreased width
-            infoBoxView.heightAnchor.constraint(equalToConstant: 100), // Increased height
+            infoBoxView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.85),
+            infoBoxView.heightAnchor.constraint(equalToConstant: 100),
 
             infoContainerView.leadingAnchor.constraint(equalTo: infoBoxView.leadingAnchor, constant: 15),
             infoContainerView.centerYAnchor.constraint(equalTo: infoBoxView.centerYAnchor),
@@ -119,7 +120,7 @@ class RunDetailViewController: UIViewController, MKMapViewDelegate {
             startButton.centerYAnchor.constraint(equalTo: infoBoxView.centerYAnchor),
             startButton.trailingAnchor.constraint(equalTo: infoBoxView.trailingAnchor, constant: -15),
             startButton.heightAnchor.constraint(equalTo: infoContainerView.heightAnchor),
-            startButton.widthAnchor.constraint(equalToConstant: 80) // Increased width
+            startButton.widthAnchor.constraint(equalToConstant: 80)
         ])
     }
 
@@ -150,21 +151,60 @@ class RunDetailViewController: UIViewController, MKMapViewDelegate {
     }
             
     @objc func startRunButtonTapped() {
+        if isRunning {
+            stopRun()
+        } else {
+            startRun()
+        }
+    }
+
+    func startRun() {
         guard let runID = run?.id else { return }
+        
+        // Stop all other runs
+        stopAllRuns()
+
+        isRunning = true
+        startButton.setTitle("Stop", for: .normal)
+        startButton.backgroundColor = .systemRed
 
         if LocationManager.shared.isUserInFirstCheckpoint() {
-            LocationManager.shared.triggerFirstCheckpointLogic()
+            // User is in the first checkpoint, skip welcome audio and start monitoring from the second checkpoint
             self.startLocationTracking()
-            if !self.checkpoints.isEmpty {
+            if self.checkpoints.count > 1 {
                 LocationManager.shared.startMonitoringCheckpoints(Array(self.checkpoints.dropFirst()), forRunID: runID)
             }
+            // Trigger the first checkpoint logic immediately
+            LocationManager.shared.triggerFirstCheckpointLogic()
         } else {
+            // User is not in the first checkpoint, play welcome audio
             AudioService.shared.downloadAndPlay(runId: runID, filename: "start.mp3") {
                 self.startLocationTracking()
-                if !self.checkpoints.isEmpty {
-                    LocationManager.shared.startMonitoringCheckpoints(Array(self.checkpoints.prefix(100)), forRunID: runID)
-                }
+                LocationManager.shared.startMonitoringCheckpoints(self.checkpoints, forRunID: runID)
             }
+        }
+    }
+    
+    func stopRun() {
+        isRunning = false
+        startButton.setTitle("Start", for: .normal)
+        startButton.backgroundColor = .systemBlue
+
+        LocationManager.shared.stopMonitoringCheckpoints()
+        
+        // Remove all circle overlays from the map
+        let circleOverlays = mapView.overlays.filter { $0 is MKCircle }
+        mapView.removeOverlays(circleOverlays)
+        
+        // Add any additional logic for stopping the run (e.g., saving data, updating UI)
+    }
+
+    func stopAllRuns() {
+        // This method should stop all other runs
+        // You might need to implement this in a central manager class that keeps track of all active runs
+        // For now, we'll just call stopRun() to ensure the current run is stopped
+        if isRunning {
+            stopRun()
         }
     }
 

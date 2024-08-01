@@ -62,7 +62,7 @@ class RunCell: UICollectionViewCell {
             elevationLabel.leadingAnchor.constraint(equalTo: distanceLabel.trailingAnchor, constant: 10),
             elevationLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10),
 
-            categoryLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
+            categoryLabel.leadingAnchor.constraint(equalTo: elevationLabel.trailingAnchor, constant: 10),
             categoryLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10)
         ])
     }
