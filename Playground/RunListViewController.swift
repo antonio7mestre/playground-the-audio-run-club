@@ -2,6 +2,7 @@ import UIKit
 import FirebaseFirestore
 import FirebaseStorage
 import CoreLocation
+import Firebase
 
 class RunListViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, CLLocationManagerDelegate {
 
@@ -11,6 +12,7 @@ class RunListViewController: UIViewController, UICollectionViewDelegate, UIColle
     var distances: [Run: CLLocationDistance] = [:]
     let locationManager = CLLocationManager()
     var userLocation: CLLocation?
+    let imageCache = NSCache<NSString, UIImage>()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -20,7 +22,6 @@ class RunListViewController: UIViewController, UICollectionViewDelegate, UIColle
         locationManager.delegate = self
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
-        fetchRuns()
         
         collectionView.delegate = self
         collectionView.dataSource = self
@@ -30,6 +31,21 @@ class RunListViewController: UIViewController, UICollectionViewDelegate, UIColle
         layout.minimumInteritemSpacing = 10
         layout.minimumLineSpacing = 20
         collectionView.collectionViewLayout = layout
+        
+        // Add observer for sign-in notification
+        NotificationCenter.default.addObserver(self, selector: #selector(userDidSignIn), name: NSNotification.Name("UserDidSignIn"), object: nil)
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        // Check if user is already signed in
+        if Auth.auth().currentUser == nil {
+            presentPhoneAuthViewController()
+        } else {
+            // User is signed in, proceed with normal run list functionality
+            fetchRuns()
+        }
     }
     
     override func viewWillLayoutSubviews() {
@@ -45,6 +61,18 @@ class RunListViewController: UIViewController, UICollectionViewDelegate, UIColle
         
         let leftItem = UIBarButtonItem(customView: titleLabel)
         navigationItem.leftBarButtonItem = leftItem
+    }
+    
+    func presentPhoneAuthViewController() {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        if let phoneAuthVC = storyboard.instantiateViewController(withIdentifier: "PhoneAuthViewController") as? PhoneAuthViewController {
+            phoneAuthVC.modalPresentationStyle = .fullScreen
+            present(phoneAuthVC, animated: true, completion: nil)
+        }
+    }
+    
+    @objc func userDidSignIn() {
+        fetchRuns()
     }
     
     func fetchRuns() {
@@ -143,18 +171,35 @@ class RunListViewController: UIViewController, UICollectionViewDelegate, UIColle
         cell.elevationLabel.text = run.elevation
         cell.categoryLabel.text = run.category
         
-        // Fetch image from Firebase Storage
-        let storageRef = Storage.storage().reference(withPath: "runs/\(run.id!)/images/cover.jpeg")
-        storageRef.getData(maxSize: 10 * 1024 * 1024) { data, error in
-            if let error = error {
-                print("Error fetching image: \(error)")
-                return
-            }
-            
-            if let data = data {
-                cell.coverImageView.image = UIImage(data: data)
-                cell.coverImageView.contentMode = .scaleAspectFill
-                cell.coverImageView.clipsToBounds = true
+        // Check if the image is already in the cache
+        if let cachedImage = imageCache.object(forKey: NSString(string: run.id!)) {
+            cell.coverImageView.image = cachedImage
+            cell.coverImageView.contentMode = .scaleAspectFill
+            cell.coverImageView.clipsToBounds = true
+        } else {
+            // If not in cache, fetch image from Firebase Storage
+            let storageRef = Storage.storage().reference(withPath: "runs/\(run.id!)/images/cover.jpeg")
+            storageRef.getData(maxSize: 10 * 1024 * 1024) { [weak self] data, error in
+                guard let self = self else { return }
+                
+                if let error = error {
+                    print("Error fetching image: \(error)")
+                    return
+                }
+                
+                if let data = data, let image = UIImage(data: data) {
+                    // Store the image in the cache
+                    self.imageCache.setObject(image, forKey: NSString(string: run.id!))
+                    
+                    // Update the cell on the main thread
+                    DispatchQueue.main.async {
+                        if let cell = collectionView.cellForItem(at: indexPath) as? RunCell {
+                            cell.coverImageView.image = image
+                            cell.coverImageView.contentMode = .scaleAspectFill
+                            cell.coverImageView.clipsToBounds = true
+                        }
+                    }
+                }
             }
         }
         
@@ -206,5 +251,9 @@ class RunListViewController: UIViewController, UICollectionViewDelegate, UIColle
            let indexPath = collectionView.indexPathsForSelectedItems?.first {
             detailVC.run = runs[indexPath.item]
         }
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 }
