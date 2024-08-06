@@ -15,6 +15,11 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -38,6 +43,7 @@
 	<array>
 		<string>audio</string>
 		<string>location</string>
+		<string>remote-notification</string>
 	</array>
 </dict>
 </plist>

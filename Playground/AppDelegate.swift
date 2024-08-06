@@ -1,5 +1,6 @@
 import UIKit
 import Firebase
+import FirebaseMessaging
 import CoreLocation
 import UserNotifications
 
@@ -9,6 +10,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        // Enable verbose logging for Firebase
+        FirebaseConfiguration.shared.setLoggerLevel(.debug)
         FirebaseApp.configure()
         
         // Initialize and set up the LocationManager for location services
@@ -19,6 +22,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             print("Push notification authorization granted: \(granted)")
         }
         application.registerForRemoteNotifications()
+        
+        // Configure Firebase Messaging
+        Messaging.messaging().delegate = self
         
         // Create the window
         window = UIWindow(frame: UIScreen.main.bounds)
@@ -49,7 +55,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     // MARK: Push Notifications
 
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        Auth.auth().setAPNSToken(deviceToken, type: .prod)
+        let tokenParts = deviceToken.map { data in String(format: "%02.2hhx", data) }
+        let token = tokenParts.joined()
+        print("Device APNs Token: \(token)")
+        
+        // Ensure APNs token is correctly set
+        Auth.auth().setAPNSToken(deviceToken, type: .sandbox) // Change to .prod for production
+        
+        // Retrieve FCM token
+        Messaging.messaging().token { token, error in
+            if let error = error {
+                print("Error fetching FCM token: \(error)")
+            } else if let token = token {
+                print("FCM Token: \(token)")
+            }
+        }
+    }
+
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        print("Failed to register for remote notifications: \(error.localizedDescription)")
     }
 
     func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
@@ -68,5 +92,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         // Handle other custom URL schemes here
         return false
+    }
+}
+
+// MARK: - MessagingDelegate
+
+extension AppDelegate: MessagingDelegate {
+    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+        if let fcmToken = fcmToken {
+            print("Firebase registration token: \(fcmToken)")
+        } else {
+            print("Failed to fetch FCM token")
+        }
     }
 }
